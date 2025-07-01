@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>전광판 점수판</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background: black;
+      color: #00ff99;
+      margin: 0;
+      padding: 40px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 5rem;
+      margin-bottom: 60px;
+      text-shadow: 0 0 20px #00ff99;
+    }
+
+    .scoreboard {
+      display: flex;
+      justify-content: center;
+      gap: 100px;
+      flex-wrap: wrap;
+      margin-bottom: 60px;
+    }
+
+    .team {
+      background: #111;
+      border: 3px solid #00ff99;
+      border-radius: 20px;
+      padding: 40px 60px;
+      box-shadow: 0 0 20px rgba(0, 255, 150, 0.3);
+    }
+
+    .team h2 {
+      font-size: 3rem;
+      margin-bottom: 20px;
+    }
+
+    .red h2 { color: #ff3b3b; }
+    .blue h2 { color: #00aaff; }
+
+    .score {
+      font-size: 10rem;
+      margin-bottom: 30px;
+      color: white;
+      text-shadow: 0 0 15px white;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      font-size: 2rem;
+      padding: 20px 40px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: transform 0.15s ease;
+    }
+
+    button:hover {
+      transform: scale(1.1);
+    }
+
+    .increase { background: #00c851; color: white; }
+    .decrease { background: #ff4444; color: white; }
+    .reset { background: #374151; color: white; margin-top: 40px; padding: 20px 60px; }
+  </style>
+</head>
+<body>
+  <h1>💀 전광판 점수판</h1>
+  <div class="scoreboard">
+    <div class="team red">
+      <h2>🔴 Red Squad</h2>
+      <div class="score" id="scoreA">0</div>
+      <div class="buttons">
+        <button class="increase" onclick="sendScore('1', 1)">+1</button>
+        <button class="decrease" onclick="sendScore('1', -1)">-1</button>
+      </div>
+    </div>
+    <div class="team blue">
+      <h2>🔵 Blue Squad</h2>
+      <div class="score" id="scoreB">0</div>
+      <div class="buttons">
+        <button class="increase" onclick="sendScore('2', 1)">+1</button>
+        <button class="decrease" onclick="sendScore('2', -1)">-1</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="reset" onclick="resetScores()">🔁 전체 초기화</button>
+
+  <script>
+    async function fetchScores() {
+      const res = await fetch("/get_scores");
+      const data = await res.json();
+      document.getElementById("scoreA").textContent = data["1"] || 0;
+      document.getElementById("scoreB").textContent = data["2"] || 0;
+    }
+
+    async function sendScore(team, delta) {
+      await fetch("/update_score", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ team: team, score: delta })
+      });
+      fetchScores();
+    }
+
+    async function resetScores() {
+      await fetch("/reset_scores", { method: "POST" });
+      fetchScores();
+    }
+
+    setInterval(fetchScores, 3000);
+    fetchScores();
+  </script>
+</body>
+</html>
